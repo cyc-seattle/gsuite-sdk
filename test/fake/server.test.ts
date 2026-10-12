@@ -77,6 +77,10 @@ describe("Directory API", () => {
     expect(response.body).toMatchObject({ error: { code: 404, errors: [{ reason: "notFound" }] } });
   });
 
+  it("answers 400 for a malformed escape in the path", async () => {
+    expect((await call("GET", "/admin/directory/v1/groups/%E0%A4%A")).status).toBe(400);
+  });
+
   it("answers 400 for a body that isn't JSON", async () => {
     expect((await call("POST", "/admin/directory/v1/groups", "{")).status).toBe(400);
   });

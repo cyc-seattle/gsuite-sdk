@@ -136,7 +136,13 @@ async function handle(model: WorkspaceModel, request: IncomingMessage, response:
     return;
   }
 
-  const match = route.path.exec(url.pathname)!.slice(1).map(decodeURIComponent);
+  let match: string[];
+  try {
+    match = route.path.exec(url.pathname)!.slice(1).map(decodeURIComponent);
+  } catch {
+    sendError(response, new FakeApiError(400, "badRequest", "Bad Request"));
+    return;
+  }
   try {
     const result = route.handle(model, match, url, body);
     if (url.pathname.startsWith("/groups/v1/") && url.searchParams.get("alt") !== "json") {
