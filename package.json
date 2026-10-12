@@ -26,6 +26,10 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./fake": {
+      "types": "./dist/fake/index.d.ts",
+      "default": "./dist/fake/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
