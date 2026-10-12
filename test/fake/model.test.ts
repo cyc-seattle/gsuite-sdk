@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { FakeApiError, ManualClock, WorkspaceModel } from "../../src/fake/index.js";
+import { GROUP_SETTINGS_TEMPLATES } from "../../src/index.js";
 
 const MINUTE = 60_000;
 
@@ -266,6 +267,14 @@ describe("group settings", () => {
       email: "sailors@example.org",
       whoCanJoin: "CAN_REQUEST_TO_JOIN",
     });
+  });
+
+  it("starts with every field the templates set, except the one Google omits while empty", () => {
+    const fields = new Set(Object.values(GROUP_SETTINGS_TEMPLATES).flatMap((template) => Object.keys(template)));
+    fields.delete("defaultMessageDenyNotificationText");
+
+    expect(Object.keys(model.getSettings("sailors@example.org"))).toEqual(expect.arrayContaining([...fields]));
+    expect(model.getSettings("sailors@example.org")).not.toHaveProperty("defaultMessageDenyNotificationText");
   });
 
   it("patches only the given fields", () => {
