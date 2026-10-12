@@ -340,3 +340,37 @@ describe("GroupSettingsClient", () => {
     expect(settings).toEqual({ whoCanJoin: "ALL_IN_DOMAIN_CAN_JOIN" });
   });
 });
+
+describe("client options", () => {
+  const rootUrl = "http://127.0.0.1:8080/";
+
+  it("sends requests to Google unless given a rootUrl", () => {
+    new DirectoryClient(fakeAuth);
+    new GroupSettingsClient(fakeAuth);
+
+    expect(adminMock.mock.calls[0]?.[0].rootUrl).toBeUndefined();
+    expect(groupssettingsMock.mock.calls[0]?.[0].rootUrl).toBeUndefined();
+  });
+
+  it("passes the rootUrl to googleapis", () => {
+    new DirectoryClient(fakeAuth, { rootUrl });
+    new GroupSettingsClient(fakeAuth, { rootUrl });
+
+    expect(adminMock).toHaveBeenCalledWith({ version: "directory_v1", auth: fakeAuth, rootUrl });
+    expect(groupssettingsMock).toHaveBeenCalledWith({ version: "v1", auth: fakeAuth, rootUrl });
+  });
+
+  it("paces requests with the given pacing", async () => {
+    groupsGet.mockResolvedValue({ data: { id: "1", email: "sailors@cyccommunitysailing.org" } });
+    settingsGet.mockResolvedValue({ data: {} });
+    const pacing = { requestDelayMs: 10 };
+
+    const group = new DirectoryClient(fakeAuth, { pacing }).getGroup("sailors@cyccommunitysailing.org");
+    const settings = new GroupSettingsClient(fakeAuth, { pacing }).getSettings("sailors@cyccommunitysailing.org");
+    await vi.advanceTimersByTimeAsync(10);
+
+    expect(groupsGet).toHaveBeenCalledTimes(1);
+    expect(settingsGet).toHaveBeenCalledTimes(1);
+    await Promise.all([group, settings]);
+  });
+});

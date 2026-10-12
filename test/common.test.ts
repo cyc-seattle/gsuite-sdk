@@ -102,3 +102,59 @@ describe("safeCall", () => {
     expect(request).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("safeCall pacing", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    // Full jitter picks a delay in [0, retryDelay]; pin it to the top of the range.
+    vi.spyOn(Math, "random").mockReturnValue(1);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  it("waits 500 ms before a request by default", async () => {
+    const request = vi.fn().mockResolvedValue("ok");
+    const promise = safeCall(request);
+
+    await vi.advanceTimersByTimeAsync(499);
+    expect(request).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    expect(request).toHaveBeenCalledTimes(1);
+    await expect(promise).resolves.toBe("ok");
+  });
+
+  it("starts retries at 60 s by default", async () => {
+    const request = vi.fn().mockRejectedValueOnce(axiosError(503)).mockResolvedValueOnce("recovered");
+    const promise = safeCall(request);
+
+    await vi.advanceTimersByTimeAsync(500 + 59_999);
+    expect(request).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(request).toHaveBeenCalledTimes(2);
+    await expect(promise).resolves.toBe("recovered");
+  });
+
+  it("waits the given delay before a request", async () => {
+    const request = vi.fn().mockResolvedValue("ok");
+    const promise = safeCall(request, { requestDelayMs: 20 });
+
+    await vi.advanceTimersByTimeAsync(19);
+    expect(request).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(1);
+    await expect(promise).resolves.toBe("ok");
+  });
+
+  it("starts retries at the given delay", async () => {
+    const request = vi.fn().mockRejectedValueOnce(axiosError(503)).mockResolvedValueOnce("recovered");
+    const promise = safeCall(request, { requestDelayMs: 0, retryDelayMs: 30 });
+
+    await vi.advanceTimersByTimeAsync(29);
+    expect(request).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(request).toHaveBeenCalledTimes(2);
+    await expect(promise).resolves.toBe("recovered");
+  });
+});
