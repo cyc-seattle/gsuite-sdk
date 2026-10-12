@@ -179,7 +179,7 @@ describe("Calendar.createEvent / updateEvent — conversion to a Google event", 
       allDay: true,
     });
 
-    const requestBody = insert.mock.calls[0][0].requestBody;
+    const requestBody = insert.mock.calls[0]?.[0].requestBody;
     expect(requestBody.start).toEqual({ date: "2026-09-19" });
     expect(requestBody.end).toEqual({ date: "2026-09-20" });
   });
@@ -204,7 +204,7 @@ describe("Calendar.createEvent / updateEvent — conversion to a Google event", 
       allDay: false,
     });
 
-    const requestBody = insert.mock.calls[0][0].requestBody;
+    const requestBody = insert.mock.calls[0]?.[0].requestBody;
     expect(requestBody.start).toEqual({ dateTime: startTime.toISO() });
     expect(requestBody.end).toEqual({ dateTime: endTime.toISO() });
   });
@@ -222,7 +222,7 @@ describe("Calendar.createEvent / updateEvent — conversion to a Google event", 
       metadata: { source: "clubspot" },
     });
 
-    const requestBody = update.mock.calls[0][0].requestBody;
+    const requestBody = update.mock.calls[0]?.[0].requestBody;
     expect(requestBody.extendedProperties).toEqual({ private: { source: "clubspot" } });
   });
 
@@ -238,7 +238,7 @@ describe("Calendar.createEvent / updateEvent — conversion to a Google event", 
       allDay: false,
     });
 
-    const requestBody = update.mock.calls[0][0].requestBody;
+    const requestBody = update.mock.calls[0]?.[0].requestBody;
     expect(requestBody).not.toHaveProperty("extendedProperties");
   });
 });
