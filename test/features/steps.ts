@@ -1,6 +1,6 @@
 import { defineSteps } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
-import type { GroupRole } from "../src/index.js";
+import type { GroupRole } from "../../src/index.js";
 import { world } from "./world.js";
 
 const MINUTE = 60_000;

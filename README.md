@@ -86,7 +86,7 @@ const directory = new DirectoryClient(auth, { rootUrl: fake.rootUrl, pacing: { r
 await fake.close();
 ```
 
-`startFakeServer` listens on a free loopback port unless given `host` and `port`. The clients still need an auth object, but the fake ignores its token. A `GoogleAuth` whose `authClient` is a `UserRefreshClient` holding any access token needs no ADC. `integration/world.ts` builds one.
+`startFakeServer` listens on a free loopback port unless given `host` and `port`. The clients still need an auth object, but the fake ignores its token. A `GoogleAuth` whose `authClient` is a `UserRefreshClient` holding any access token needs no ADC. `test/features/world.ts` builds one.
 
 `WorkspaceModel` holds the groups, members, and settings. Use it directly in unit tests, or seed it before a test: pass `{ settled: true }` to `insertGroup` or `insertMember` to skip the new-group delay. Its options:
 
@@ -122,7 +122,7 @@ docker build -t gsuite-fake . && docker run -p 8080:8080 gsuite-fake
 
 ## Development
 
-`mise run test` runs the unit tests in `test/`. `mise run integration` runs the Gherkin features in `integration/` against the fake, which starts in the test process. `mise run ci` runs both, after `check`. See `AGENTS.md`.
+`mise run test` runs the unit tests in `test/`. `mise run integration` runs the Gherkin features in `features/` against the fake, which starts in the test process. `mise run ci` runs both, after `check`. See `AGENTS.md`.
 
 ## Release
 

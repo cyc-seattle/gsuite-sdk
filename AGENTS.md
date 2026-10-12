@@ -15,7 +15,7 @@ mise provides the tools in `mise.toml`. Run `mise trust`, then `mise run install
 - `mise run ci` — `check`, `test`, and `integration`, as CI runs them
 - `mise run check` — typecheck, format check, and lint
 - `mise run test` — the unit tests in `test/`
-- `mise run integration` — the Gherkin features in `integration/`, against the fake
+- `mise run integration` — the Gherkin features in `features/`, against the fake
 - `mise run format` — fix formatting with Prettier and ESLint
 
 Keep a task's `run` to about two lines. Put anything longer in `scripts/`.
@@ -25,9 +25,10 @@ Keep a task's `run` to about two lines. Put anything longer in `scripts/`.
 - `src/` — the SDK. `src/fake/` is the Workspace fake: `model.ts` holds groups, members, and
   settings in memory, and `server.ts` serves them over HTTP at the paths googleapis calls.
 - `test/` — unit tests. They mock googleapis, and they test the fake's model and server directly.
-- `integration/` — `*.feature` files, each with its steps in the `*.test.ts` of the same name.
-  Steps that more than one feature uses are in `steps.ts`, and `world.ts` holds one scenario's
-  fake, clients, and run ID.
+- `features/` — the `*.feature` files. Each one's steps are in the `test/features/*.test.ts` of the
+  same name, which only `mise run integration` runs. Steps that more than one feature uses are in
+  `test/features/steps.ts`, and `test/features/world.ts` holds one scenario's fake, clients, and
+  run ID.
 - `Dockerfile` — runs the fake as a container for a dev environment. It isn't published.
 
 ## Testing

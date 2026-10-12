@@ -1,10 +1,10 @@
 import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
-import { resolveGroupSettingsTemplate, type GroupSettings } from "../src/index.js";
+import { resolveGroupSettingsTemplate, type GroupSettings } from "../../src/index.js";
 import "./steps.js";
 import { startWorld, stopWorld, world } from "./world.js";
 
-const feature = await loadFeature("./settings.feature");
+const feature = await loadFeature("features/settings.feature");
 
 describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) => {
   let settings: GroupSettings;

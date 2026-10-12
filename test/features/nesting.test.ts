@@ -1,10 +1,10 @@
 import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import { expect } from "vitest";
-import { getHttpStatus } from "../src/index.js";
+import { getHttpStatus } from "../../src/index.js";
 import "./steps.js";
 import { startWorld, stopWorld, world } from "./world.js";
 
-const feature = await loadFeature("./nesting.feature");
+const feature = await loadFeature("features/nesting.feature");
 
 describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) => {
   BeforeEachScenario(startWorld);

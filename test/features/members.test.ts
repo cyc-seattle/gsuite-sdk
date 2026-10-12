@@ -2,7 +2,7 @@ import { describeFeature, loadFeature } from "@amiceli/vitest-cucumber";
 import "./steps.js";
 import { startWorld, stopWorld } from "./world.js";
 
-const feature = await loadFeature("./members.feature");
+const feature = await loadFeature("features/members.feature");
 
 describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) => {
   BeforeEachScenario(startWorld);

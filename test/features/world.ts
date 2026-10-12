@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Auth } from "googleapis";
-import { DirectoryClient, GroupSettingsClient } from "../src/index.js";
-import { ManualClock, WorkspaceModel, startFakeServer, type RunningFakeServer } from "../src/fake/index.js";
+import { DirectoryClient, GroupSettingsClient } from "../../src/index.js";
+import { ManualClock, WorkspaceModel, startFakeServer, type RunningFakeServer } from "../../src/fake/index.js";
 
 /** No wait between requests, and an immediate retry, so a scenario takes milliseconds. */
 const FAST = { requestDelayMs: 0, retryDelayMs: 0 };
