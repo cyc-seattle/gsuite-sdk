@@ -30,6 +30,10 @@ defineSteps(({ Step }) => {
     }
   });
 
+  Step("adding succeeds", () => {
+    expect(world().error).toBeUndefined();
+  });
+
   Step("{string} lists {string} as a {word}", async (_, group: string, member: string, word: string) => {
     const w = world();
     const members = await w.directory.listMembers(w.emailOf(group));

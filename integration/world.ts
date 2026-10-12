@@ -6,12 +6,8 @@ import { ManualClock, WorkspaceModel, startFakeServer, type RunningFakeServer } 
 /** No wait between requests, and an immediate retry, so a scenario takes milliseconds. */
 const FAST = { requestDelayMs: 0, retryDelayMs: 0 };
 
-/**
- * An OAuth client with a dummy token that refuses any URL outside the fake, before it touches the
- * network. A client that lost its `rootUrl` then fails its scenario instead of calling Google.
- */
-// A UserRefreshClient, not a bare OAuth2Client, because the clients take GoogleAuth's default
-// client type, which names only Google's own credential classes.
+/** Refuses any URL outside the fake, so a client that lost its `rootUrl` fails instead of calling
+ * Google. A UserRefreshClient because the clients' GoogleAuth type admits only Google's own classes. */
 class FakeOnlyAuthClient extends Auth.UserRefreshClient {
   constructor(private readonly rootUrl: string) {
     super();

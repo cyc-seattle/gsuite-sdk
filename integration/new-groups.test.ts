@@ -19,7 +19,9 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
 
   Scenario("A group just created refuses members", ({ Then }) => {
     Then("adding fails because {string} is not found", () => {
-      expect(getHttpStatus(world().error)).toBe(404);
+      const { error } = world();
+      expect(getHttpStatus(error)).toBe(404);
+      expect(error).toMatchObject({ message: "Resource Not Found: groupKey" });
     });
   });
 

@@ -11,4 +11,5 @@ Feature: A new group takes members once Google is ready
     Given a group "Sailors" was just created
     And a minute passes
     When "Ann" is added to "Sailors" as a member
-    Then "Sailors" lists "Ann" as a member
+    Then adding succeeds
+    And "Sailors" lists "Ann" as a member
