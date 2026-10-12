@@ -29,6 +29,10 @@ description = "Run unit tests"
 depends = ["build"]
 run = "pnpm exec vitest run"
 
+[tasks.integration]
+description = "Run the Gherkin integration tests against the Workspace fake"
+run = "scripts/integration"
+
 [tasks.ci]
-description = "Run all checks and tests"
-depends = ["check", "test"]
+description = "Run all checks, unit tests, and integration tests"
+depends = ["check", "test", "integration"]

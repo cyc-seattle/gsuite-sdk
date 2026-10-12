@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# The Workspace fake runs inside the test process, so there's nothing to start or stop here.
+set -euo pipefail
+exec pnpm exec vitest run --config vitest.integration.config.ts "$@"
