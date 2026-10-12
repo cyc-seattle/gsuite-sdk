@@ -49,6 +49,17 @@ const members = await new DirectoryClient(auth).listMembers("team@example.org");
 const settings = await new GroupSettingsClient(auth).getSettings("team@example.org");
 ```
 
+### Client options
+
+`DirectoryClient` and `GroupSettingsClient` take an optional second argument:
+
+- `rootUrl` sends requests somewhere other than Google, such as the [Workspace fake](#workspace-fake). googleapis uses only its origin.
+- `pacing` sets `safeCall`'s waits: `requestDelayMs` before every request (default 500) and `retryDelayMs` before the retry of a transient error (default 60000).
+
+```ts
+const directory = new DirectoryClient(auth, { rootUrl, pacing: { requestDelayMs: 0, retryDelayMs: 0 } });
+```
+
 ## Retries
 
 `safeCall` wraps a request. It waits between requests and retries transient errors, such as rate limits and 5xx responses.
@@ -58,6 +69,59 @@ import { safeCall } from "@cyc-seattle/gsuite-sdk";
 
 await safeCall(() => row.save());
 ```
+
+`safeCall(request, pacing)` takes the same `pacing` as the clients.
+
+## Workspace fake
+
+`@cyc-seattle/gsuite-sdk/fake` stands in for the Directory and Groups Settings APIs. It serves the calls that `DirectoryClient` and `GroupSettingsClient` make, from memory.
+
+```ts
+import { ManualClock, WorkspaceModel, startFakeServer } from "@cyc-seattle/gsuite-sdk/fake";
+
+const clock = new ManualClock();
+const fake = await startFakeServer({ model: new WorkspaceModel({ clock }) });
+const directory = new DirectoryClient(auth, { rootUrl: fake.rootUrl, pacing: { requestDelayMs: 0, retryDelayMs: 0 } });
+// ...
+await fake.close();
+```
+
+`startFakeServer` listens on a free loopback port unless given `host` and `port`. The clients still need an auth object, but the fake ignores its token. A `GoogleAuth` whose `authClient` is a `UserRefreshClient` holding any access token needs no ADC. `integration/world.ts` builds one.
+
+`WorkspaceModel` holds the groups, members, and settings. Use it directly in unit tests, or seed it before a test: pass `{ settled: true }` to `insertGroup` or `insertMember` to skip the delays below. Its options:
+
+| Option                    | Default    | What it does                                                          |
+| ------------------------- | ---------- | --------------------------------------------------------------------- |
+| `clock`                   | the system | Where the model reads the time. `ManualClock` moves on `advance(ms)`. |
+| `newGroupDelayMs`         | 60000      | How long a new group refuses member inserts                           |
+| `nestedMembershipDelayMs` | 600000     | How long a group added to a group stays out of its member list        |
+| `pageSize`                | 200        | The largest page a list returns                                       |
+
+It answers as Google does:
+
+| Case                                       | Status | Reason            | Message                          |
+| ------------------------------------------ | ------ | ----------------- | -------------------------------- |
+| An unknown group                           | 404    | `notFound`        | `Resource Not Found: groupKey`   |
+| An unknown member                          | 404    | `notFound`        | `Resource Not Found: memberKey`  |
+| A member insert into a group still too new | 404    | `notFound`        | `Resource Not Found: groupKey`   |
+| A member who's already in the group        | 409    | `duplicate`       | `Member already exists.`         |
+| A group that already exists                | 409    | `duplicate`       | `Entity already exists.`         |
+| A membership that would make a cycle       | 412    | `conditionNotMet` | `Cyclic memberships not allowed` |
+| Settings of an unknown group               | 404    | `notFound`        | `Not Found`                      |
+
+Google doesn't document the cycle's status or the settings 404's message. The fake follows the JSON API's conventions for them.
+
+Groups Settings answers in Atom XML unless the request asks for `alt=json`, like Google.
+
+The `Dockerfile` runs the fake on port 8080, for a dev environment. `PORT`, `NEW_GROUP_DELAY_MS`, and `NESTED_MEMBERSHIP_DELAY_MS` override its defaults.
+
+```sh
+docker build -t gsuite-fake . && docker run -p 8080:8080 gsuite-fake
+```
+
+## Development
+
+`mise run test` runs the unit tests in `test/`. `mise run integration` runs the Gherkin features in `integration/` against the fake, which starts in the test process. `mise run ci` runs both, after `check`. See `AGENTS.md`.
 
 ## Release
 
