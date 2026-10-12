@@ -31,7 +31,7 @@ run = "pnpm exec vitest run"
 
 [tasks.integration]
 description = "Run the Gherkin integration tests against the Workspace fake"
-run = "scripts/integration"
+run = "pnpm exec vitest run --config vitest.integration.config.ts"
 
 [tasks.ci]
 description = "Run all checks, unit tests, and integration tests"
