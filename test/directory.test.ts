@@ -60,6 +60,8 @@ afterEach(() => {
 });
 
 async function run<T>(promise: Promise<T>): Promise<T> {
+  // A rejection lands while the timers run, before the caller can attach its handler.
+  promise.catch(() => undefined);
   await vi.runAllTimersAsync();
   return promise;
 }
