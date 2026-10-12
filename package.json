@@ -1,17 +1,39 @@
 {
-  "name": "@cyc-seattle/gsuite",
+  "name": "@cyc-seattle/gsuite-sdk",
+  "version": "0.0.0-development",
   "description": "Domain-agnostic wrappers around Google Workspace APIs",
-  "version": "0.0.1",
   "author": "CYC Community Sailing Center",
   "license": "Apache-2.0",
+  "homepage": "https://github.com/cyc-seattle/gsuite-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/cyc-seattle/gsuite-sdk/issues"
+  },
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cyc-seattle/gsuite-sdk.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@10.34.6",
+  "prettier": "@cyc-seattle/ts-config/prettier",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "dist"
   ],
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json"
+    "build": "tsc -p tsconfig.build.json",
+    "prepack": "pnpm run build"
   },
   "dependencies": {
     "exponential-backoff": "^3.1.3",
@@ -28,7 +50,5 @@
     "prettier": "^3.9.10",
     "typescript": "^5.9.3",
     "vitest": "^4.1.11"
-  },
-  "packageManager": "pnpm@10.34.6",
-  "prettier": "@cyc-seattle/ts-config/prettier"
+  }
 }
