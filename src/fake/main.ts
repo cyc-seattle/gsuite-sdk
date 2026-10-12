@@ -3,7 +3,6 @@ import { startFakeServer } from "./server.js";
 
 const model = new WorkspaceModel({
   ...optionalNumber("newGroupDelayMs", process.env["NEW_GROUP_DELAY_MS"]),
-  ...optionalNumber("nestedMembershipDelayMs", process.env["NESTED_MEMBERSHIP_DELAY_MS"]),
 });
 const server = await startFakeServer({ model, host: "0.0.0.0", port: Number(process.env["PORT"] ?? 8080) });
 console.log(`Workspace fake listening on port ${new URL(server.rootUrl).port}`);

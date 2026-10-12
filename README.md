@@ -88,14 +88,13 @@ await fake.close();
 
 `startFakeServer` listens on a free loopback port unless given `host` and `port`. The clients still need an auth object, but the fake ignores its token. A `GoogleAuth` whose `authClient` is a `UserRefreshClient` holding any access token needs no ADC. `integration/world.ts` builds one.
 
-`WorkspaceModel` holds the groups, members, and settings. Use it directly in unit tests, or seed it before a test: pass `{ settled: true }` to `insertGroup` or `insertMember` to skip the delays below. Its options:
+`WorkspaceModel` holds the groups, members, and settings. Use it directly in unit tests, or seed it before a test: pass `{ settled: true }` to `insertGroup` or `insertMember` to skip the new-group delay. Its options:
 
-| Option                    | Default    | What it does                                                          |
-| ------------------------- | ---------- | --------------------------------------------------------------------- |
-| `clock`                   | the system | Where the model reads the time. `ManualClock` moves on `advance(ms)`. |
-| `newGroupDelayMs`         | 60000      | How long a new group refuses member inserts                           |
-| `nestedMembershipDelayMs` | 600000     | How long a group added to a group stays out of its member list        |
-| `pageSize`                | 200        | The largest page a list returns                                       |
+| Option            | Default    | What it does                                                          |
+| ----------------- | ---------- | --------------------------------------------------------------------- |
+| `clock`           | the system | Where the model reads the time. `ManualClock` moves on `advance(ms)`. |
+| `newGroupDelayMs` | 60000      | How long a new group refuses member inserts                           |
+| `pageSize`        | 200        | The largest page a list returns                                       |
 
 It answers as Google does:
 
@@ -111,9 +110,11 @@ It answers as Google does:
 
 Google doesn't document the cycle's status or the settings 404's message. The fake follows the JSON API's conventions for them.
 
+Derived membership isn't modeled, because the SDK reads only direct members.
+
 Groups Settings answers in Atom XML unless the request asks for `alt=json`, like Google.
 
-The `Dockerfile` runs the fake on port 8080, for a dev environment. `PORT`, `NEW_GROUP_DELAY_MS`, and `NESTED_MEMBERSHIP_DELAY_MS` override its defaults.
+The `Dockerfile` runs the fake on port 8080, for a dev environment. `PORT` and `NEW_GROUP_DELAY_MS` override its defaults.
 
 ```sh
 docker build -t gsuite-fake . && docker run -p 8080:8080 gsuite-fake

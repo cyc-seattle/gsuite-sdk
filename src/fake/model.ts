@@ -6,8 +6,6 @@ export interface WorkspaceModelOptions {
   clock?: Clock;
   /** How long a new group refuses member inserts. Defaults to a minute. */
   newGroupDelayMs?: number;
-  /** How long a group added to another group stays out of its member list. Defaults to 10 minutes. */
-  nestedMembershipDelayMs?: number;
   /** The largest page a list returns, and the default. Google's is 200. */
   pageSize?: number;
 }
@@ -71,8 +69,6 @@ interface StoredMember {
   email: string;
   role: GroupRole;
   type: GroupMemberType;
-  /** When the member shows up in reads. */
-  visibleAt: number;
 }
 
 const ROLES: readonly GroupRole[] = ["MEMBER", "MANAGER", "OWNER"];
@@ -101,7 +97,6 @@ const DEFAULT_SETTINGS: GroupSettings = {
 export class WorkspaceModel {
   private readonly clock: Clock;
   private readonly newGroupDelayMs: number;
-  private readonly nestedMembershipDelayMs: number;
   private readonly pageSize: number;
   private readonly groups = new Map<string, StoredGroup>();
   private readonly userIds = new Map<string, string>();
@@ -110,7 +105,6 @@ export class WorkspaceModel {
   constructor(options: WorkspaceModelOptions = {}) {
     this.clock = options.clock ?? systemClock;
     this.newGroupDelayMs = options.newGroupDelayMs ?? 60_000;
-    this.nestedMembershipDelayMs = options.nestedMembershipDelayMs ?? 600_000;
     this.pageSize = options.pageSize ?? 200;
   }
 
@@ -177,10 +171,9 @@ export class WorkspaceModel {
     }
     const role = this.parseRole(body.role ?? "MEMBER");
 
-    const now = this.clock.now();
     // A group too new to take members answers as if it didn't exist yet
     // (googleapis/google-api-nodejs-client#166).
-    if (!seed.settled && now < group.acceptsMembersAt) {
+    if (!seed.settled && this.clock.now() < group.acceptsMembersAt) {
       throw notFound("groupKey");
     }
     const key = body.email.toLowerCase();
@@ -196,14 +189,8 @@ export class WorkspaceModel {
     }
 
     const member: StoredMember = nested
-      ? {
-          id: nested.id,
-          email: nested.email,
-          role,
-          type: "GROUP",
-          visibleAt: seed.settled ? 0 : now + this.nestedMembershipDelayMs,
-        }
-      : { id: this.userId(key), email: body.email, role, type: "USER", visibleAt: 0 };
+      ? { id: nested.id, email: nested.email, role, type: "GROUP" }
+      : { id: this.userId(key), email: body.email, role, type: "USER" };
     group.members.set(key, member);
     return this.toMember(member);
   }
@@ -214,8 +201,7 @@ export class WorkspaceModel {
 
   listMembers(groupKey: string, params: ListParams = {}): MemberPage {
     const group = this.requireGroup(groupKey);
-    const visible = [...group.members.values()].filter((member) => this.isVisible(member));
-    const { items, nextPageToken } = this.page(visible, params);
+    const { items, nextPageToken } = this.page([...group.members.values()], params);
 
     const page: MemberPage = { kind: "admin#directory#members" };
     if (items.length > 0) {
@@ -276,13 +262,13 @@ export class WorkspaceModel {
     const member =
       group.members.get(memberKey.toLowerCase()) ??
       [...group.members.values()].find((candidate) => candidate.id === memberKey);
-    if (!member || !this.isVisible(member)) {
+    if (!member) {
       throw notFound("memberKey");
     }
     return member;
   }
 
-  /** Whether `target` is `from` or a group nested anywhere under it, counting memberships still hidden. */
+  /** Whether `target` is `from` or a group nested anywhere under it. */
   private reaches(from: StoredGroup, target: StoredGroup): boolean {
     const seen = new Set<StoredGroup>();
     const stack = [from];
@@ -303,10 +289,6 @@ export class WorkspaceModel {
       }
     }
     return false;
-  }
-
-  private isVisible(member: StoredMember): boolean {
-    return this.clock.now() >= member.visibleAt;
   }
 
   private parseRole(role: string): GroupRole {

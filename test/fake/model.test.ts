@@ -8,7 +8,7 @@ let model: WorkspaceModel;
 
 beforeEach(() => {
   clock = new ManualClock();
-  model = new WorkspaceModel({ clock, newGroupDelayMs: MINUTE, nestedMembershipDelayMs: 10 * MINUTE, pageSize: 2 });
+  model = new WorkspaceModel({ clock, newGroupDelayMs: MINUTE, pageSize: 2 });
 });
 
 function errorOf(call: () => unknown): FakeApiError {
@@ -202,28 +202,11 @@ describe("nested groups", () => {
     seedGroup("class@example.org");
   });
 
-  it("shows a nested group only after its delay", () => {
+  it("lists a nested group as a direct member at once", () => {
     model.insertMember("program@example.org", { email: "class@example.org" });
 
-    clock.advance(10 * MINUTE - 1);
-    expect(memberEmails("program@example.org")).toEqual([]);
-    expect(errorOf(() => model.getMember("program@example.org", "class@example.org")).status).toBe(404);
-
-    clock.advance(1);
     expect(model.getMember("program@example.org", "class@example.org")).toMatchObject({ type: "GROUP" });
     expect(memberEmails("program@example.org")).toEqual(["class@example.org"]);
-  });
-
-  it("knows about a nested group before it shows", () => {
-    model.insertMember("program@example.org", { email: "class@example.org" });
-
-    expect(errorOf(() => model.insertMember("program@example.org", { email: "class@example.org" })).status).toBe(409);
-  });
-
-  it("shows a person at once", () => {
-    model.insertMember("program@example.org", { email: "ann@example.org" });
-
-    expect(memberEmails("program@example.org")).toEqual(["ann@example.org"]);
   });
 
   it("gives a nested group the group's ID", () => {
@@ -258,7 +241,7 @@ describe("membership cycles", () => {
     expect(errorOf(() => model.insertMember("b@example.org", { email: "a@example.org" })).body).toEqual(cycle);
   });
 
-  it("rejects a cycle through a membership that hasn't shown yet", () => {
+  it("rejects a cycle through a group in between", () => {
     model.insertMember("a@example.org", { email: "b@example.org" });
     model.insertMember("b@example.org", { email: "c@example.org" });
 

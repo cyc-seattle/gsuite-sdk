@@ -40,10 +40,6 @@ defineSteps(({ Step }) => {
     world().clock.advance(MINUTE);
   });
 
-  Step("10 minutes pass", () => {
-    world().clock.advance(10 * MINUTE);
-  });
-
   Step("the list holds {string}, {string}, and {string}", (_, first: string, second: string, third: string) => {
     expect([...world().listed].sort()).toEqual([first, second, third].sort());
   });
