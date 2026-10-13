@@ -1,6 +1,16 @@
 import { Auth, admin_directory_v1, google, groupssettings_v1 } from "googleapis";
 import winston from "winston";
-import { getHttpStatus, safeCall } from "./common.js";
+import { getHttpStatus, safeCall, type Pacing } from "./common.js";
+
+/** Options for a Google API client. Omit them to call Google itself, at the default pace. */
+export interface ClientOptions {
+  /**
+   * Where to send requests instead of Google, such as a Workspace fake. googleapis keeps only the
+   * origin: a path here is dropped.
+   */
+  rootUrl?: string;
+  pacing?: Pacing;
+}
 
 export type GroupRole = "MEMBER" | "MANAGER" | "OWNER";
 
@@ -38,12 +48,18 @@ export type AddMemberResult = "added" | "already-member";
  */
 export class DirectoryClient {
   private client: admin_directory_v1.Admin;
+  private pacing: Pacing;
 
-  constructor(auth: Auth.GoogleAuth) {
+  constructor(auth: Auth.GoogleAuth, options: ClientOptions = {}) {
+    this.pacing = options.pacing ?? {};
     // The `directory_v1` cast is needed because `google.admin` also has overloads for
     // two other API versions, which the `auth` cast below (needed for its own reasons —
     // see CalendarClient) leaves TypeScript unable to discriminate between.
-    this.client = google.admin({ version: "directory_v1", auth } as any) as unknown as admin_directory_v1.Admin;
+    this.client = google.admin({
+      version: "directory_v1",
+      auth,
+      rootUrl: options.rootUrl,
+    } as any) as unknown as admin_directory_v1.Admin;
   }
 
   /**
@@ -59,7 +75,7 @@ export class DirectoryClient {
       const group = await safeCall<admin_directory_v1.Schema$Group>(async () => {
         const response = await this.client.groups.get({ groupKey });
         return response.data;
-      });
+      }, this.pacing);
       return convertToGroup(group);
     } catch (error) {
       if (getHttpStatus(error) === 404) {
@@ -90,7 +106,7 @@ export class DirectoryClient {
       const page = await safeCall<admin_directory_v1.Schema$Groups>(async () => {
         const response = await this.client.groups.list(params);
         return response.data;
-      });
+      }, this.pacing);
       groups.push(...(page.groups ?? []).map(convertToGroup));
       pageToken = page.nextPageToken ?? undefined;
     } while (pageToken);
@@ -118,7 +134,7 @@ export class DirectoryClient {
     const group = await safeCall<admin_directory_v1.Schema$Group>(async () => {
       const response = await this.client.groups.insert({ requestBody });
       return response.data;
-    });
+    }, this.pacing);
 
     winston.info("Created group", { email: group.email });
     return convertToGroup(group);
@@ -141,7 +157,7 @@ export class DirectoryClient {
       const page = await safeCall<admin_directory_v1.Schema$Members>(async () => {
         const response = await this.client.members.list(params);
         return response.data;
-      });
+      }, this.pacing);
       members.push(...(page.members ?? []).map(convertToGroupMember));
       pageToken = page.nextPageToken ?? undefined;
     } while (pageToken);
@@ -164,7 +180,7 @@ export class DirectoryClient {
       await safeCall<admin_directory_v1.Schema$Member>(async () => {
         const response = await this.client.members.insert({ groupKey, requestBody: { email, role } });
         return response.data;
-      });
+      }, this.pacing);
       winston.info("Added group member", { groupKey, email, role });
       return "added";
     } catch (error) {
@@ -187,7 +203,7 @@ export class DirectoryClient {
     const member = await safeCall<admin_directory_v1.Schema$Member>(async () => {
       const response = await this.client.members.get({ groupKey, memberKey: email });
       return response.data;
-    });
+    }, this.pacing);
     const currentRole = (member.role as GroupRole | undefined) ?? "MEMBER";
 
     if (GROUP_ROLE_RANK[currentRole] < GROUP_ROLE_RANK[role]) {
@@ -204,7 +220,7 @@ export class DirectoryClient {
     await safeCall<admin_directory_v1.Schema$Member>(async () => {
       const response = await this.client.members.update({ groupKey, memberKey: email, requestBody: { role } });
       return response.data;
-    });
+    }, this.pacing);
     winston.info("Updated group member role", { groupKey, email, role });
   }
 }
@@ -247,9 +263,15 @@ export type GroupSettings = groupssettings_v1.Schema$Groups;
  */
 export class GroupSettingsClient {
   private client: groupssettings_v1.Groupssettings;
+  private pacing: Pacing;
 
-  constructor(auth: Auth.GoogleAuth) {
-    this.client = google.groupssettings({ version: "v1", auth } as any) as groupssettings_v1.Groupssettings;
+  constructor(auth: Auth.GoogleAuth, options: ClientOptions = {}) {
+    this.pacing = options.pacing ?? {};
+    this.client = google.groupssettings({
+      version: "v1",
+      auth,
+      rootUrl: options.rootUrl,
+    } as any) as groupssettings_v1.Groupssettings;
   }
 
   /**
@@ -263,7 +285,7 @@ export class GroupSettingsClient {
       // reads as undefined.
       const response = await this.client.groups.get({ groupUniqueId: groupEmail, alt: "json" });
       return response.data;
-    });
+    }, this.pacing);
   }
 
   /**
@@ -279,7 +301,7 @@ export class GroupSettingsClient {
         requestBody: settings,
       });
       return response.data;
-    });
+    }, this.pacing);
 
     winston.info("Patched group settings", { groupEmail });
     return result;

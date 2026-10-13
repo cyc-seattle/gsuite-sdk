@@ -1,6 +1,5 @@
 import winston from "winston";
 import { backOff } from "exponential-backoff";
-import { setTimeout } from "timers/promises";
 
 // The default quota on Google Spreadsheet API is 60 requests/minute/user.
 // However, there's a separate read and write quota, so we can safely double
@@ -76,18 +75,27 @@ export function isRetryableError(error: unknown): boolean {
   return status >= 500 && status <= 599;
 }
 
+/** How `safeCall` spaces out requests. The defaults suit the real APIs; a fake can set both to 0. */
+export interface Pacing {
+  /** Wait before every request. */
+  requestDelayMs?: number;
+  /** Wait before the retry of a transient failure, before jitter. */
+  retryDelayMs?: number;
+}
+
 /**
  * Rate-limited wrapper for Google API calls with exponential backoff retry.
  *
  * Retries only transient failures (see {@link isRetryableError}); non-retryable
  * errors are re-thrown immediately rather than incurring the backoff delay.
  */
-export async function safeCall<T>(request: () => Promise<T>): Promise<T> {
-  await setTimeout(millisPerRequest);
+export async function safeCall<T>(request: () => Promise<T>, pacing: Pacing = {}): Promise<T> {
+  // The global timer, not timers/promises, so tests' fake timers control it.
+  await new Promise((resolve) => setTimeout(resolve, pacing.requestDelayMs ?? millisPerRequest));
   return backOff(request, {
     jitter: "full",
     numOfAttempts: 2,
-    startingDelay: 60_000,
+    startingDelay: pacing.retryDelayMs ?? 60_000,
     retry: (error: unknown) => {
       if (!isRetryableError(error)) {
         return false;
