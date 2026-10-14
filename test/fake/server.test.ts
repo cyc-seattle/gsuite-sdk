@@ -39,6 +39,12 @@ describe("startFakeServer", () => {
   });
 });
 
+describe("GET /healthz", () => {
+  it("returns 200", async () => {
+    expect(await call("GET", "/healthz")).toMatchObject({ status: 200, body: { status: "ok" } });
+  });
+});
+
 describe("Directory API", () => {
   it("lists groups a page at a time", async () => {
     const first = await call("GET", "/admin/directory/v1/groups?customer=my_customer");

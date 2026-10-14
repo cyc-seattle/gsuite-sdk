@@ -121,6 +121,11 @@ export async function startFakeServer(options: StartFakeServerOptions = {}): Pro
 
 async function handle(model: WorkspaceModel, request: IncomingMessage, response: ServerResponse): Promise<void> {
   const url = new URL(request.url ?? "/", "http://fake");
+  // Kubernetes probes this; it isn't part of Google's API, so it stays out of ROUTES.
+  if (request.method === "GET" && url.pathname === "/healthz") {
+    send(response, 200, { status: "ok" });
+    return;
+  }
   const route = ROUTES.find((candidate) => candidate.method === request.method && candidate.path.test(url.pathname));
   if (!route) {
     sendError(response, new FakeApiError(404, "notFound", "Not Found"));

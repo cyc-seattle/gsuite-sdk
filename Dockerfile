@@ -1,4 +1,4 @@
-# The Workspace fake, for a dev environment. This repo's tests start it in process instead.
+# The Workspace fake, published as ghcr.io/cyc-seattle/workspace-fake. This repo's tests start it in process instead.
 FROM node:22-slim AS build
 WORKDIR /app
 RUN corepack enable
@@ -13,7 +13,8 @@ FROM node:22-slim
 WORKDIR /app
 COPY --from=build /app/package.json ./
 COPY --from=build /app/dist/fake ./dist/fake
-USER node
+# A numeric uid, so Kubernetes can check runAsNonRoot. The fake writes no files.
+USER 1000
 ENV PORT=8080
 EXPOSE 8080
 CMD ["node", "dist/fake/main.js"]
