@@ -3,6 +3,8 @@ name: release
 on:
   push:
     branches: [main]
+  # Re-runs a release whose run failed before semantic-release tagged it.
+  workflow_dispatch:
 
 permissions:
   contents: write
