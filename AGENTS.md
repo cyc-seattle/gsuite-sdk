@@ -29,7 +29,7 @@ Keep a task's `run` to about two lines. Put anything longer in `scripts/`.
   same name, which only `mise run integration` runs. Steps that more than one feature uses are in
   `test/features/steps.ts`, and `test/features/world.ts` holds one scenario's fake, clients, and
   run ID.
-- `Dockerfile` — runs the fake as a container for a dev environment. It isn't published.
+- `Dockerfile` — runs the fake as a container. Releases publish it as `ghcr.io/cyc-seattle/workspace-fake`.
 
 ## Testing
 

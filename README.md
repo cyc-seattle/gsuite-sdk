@@ -114,10 +114,18 @@ Derived membership isn't modeled, because the SDK reads only direct members.
 
 Groups Settings answers in Atom XML unless the request asks for `alt=json`, like Google.
 
-The `Dockerfile` runs the fake on port 8080, for a dev environment. `PORT` and `NEW_GROUP_DELAY_MS` override its defaults.
+### Container image
+
+Every release publishes `ghcr.io/cyc-seattle/workspace-fake:<version>` and `:latest`, built from the `Dockerfile`. The fake ignores auth tokens, so any bearer token works.
+
+- It listens on port 8080. `PORT` changes that.
+- `NEW_GROUP_DELAY_MS` sets how long a new group refuses member inserts (default 60000). Set it to `0` to seed a group and its members at once.
+- `GET /healthz` returns 200.
+- It runs as uid 1000 and writes no files, so it works with a read-only root filesystem and all capabilities dropped.
+- Seed it through the Directory API: `POST /admin/directory/v1/groups`, then `POST .../groups/<group>/members`.
 
 ```sh
-docker build -t gsuite-fake . && docker run -p 8080:8080 gsuite-fake
+docker run -p 8080:8080 -e NEW_GROUP_DELAY_MS=0 ghcr.io/cyc-seattle/workspace-fake
 ```
 
 ## Development
