@@ -1,5 +1,5 @@
 # The Workspace fake, published as ghcr.io/cyc-seattle/workspace-fake. This repo's tests start it in process instead.
-FROM node:22-slim AS build
+FROM node:24-slim AS build
 WORKDIR /app
 RUN corepack enable
 COPY package.json pnpm-lock.yaml ./
@@ -9,7 +9,7 @@ COPY src ./src
 RUN pnpm run build
 
 # The fake needs only Node's built-ins, so no node_modules.
-FROM node:22-slim
+FROM node:24-slim
 WORKDIR /app
 COPY --from=build /app/package.json ./
 COPY --from=build /app/dist/fake ./dist/fake
