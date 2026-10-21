@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   release:
-    uses: cyc-seattle/.github/.github/workflows/release.yml@v2.2.0
+    uses: cyc-seattle/.github/.github/workflows/release.yml@v2.4.0
     with:
       image: ghcr.io/cyc-seattle/workspace-fake
       image-file: Dockerfile
