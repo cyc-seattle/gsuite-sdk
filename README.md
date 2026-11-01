@@ -134,4 +134,4 @@ docker run -p 8080:8080 -e NEW_GROUP_DELAY_MS=0 ghcr.io/cyc-seattle/workspace-fa
 
 ## Release
 
-Every merge to `main` releases from the PR title. The title must be a conventional commit. `fix:` makes a patch release, `feat:` a minor release, and a `!` after the type a major release. Types such as `docs:`, `build:`, and `test:` release nothing. semantic-release publishes to npm and creates the GitHub release.
+Every merge to `main` releases from the PR title, once CI passes. The title must be a conventional commit. `fix:` makes a patch release, `feat:` a minor release, and a `!` after the type a major release. Types such as `docs:`, `build:`, and `test:` release nothing. semantic-release publishes to npm and creates the GitHub release.
