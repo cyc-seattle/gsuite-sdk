@@ -13,3 +13,16 @@ permissions:
 jobs:
   ci:
     uses: cyc-seattle/.github/.github/workflows/ci.yml@v2.4.0
+  # Releases from main only, once CI passes, so a failing main never publishes.
+  # Running this workflow on main from the Actions tab retries a release that failed before it tagged.
+  release:
+    needs: ci
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    uses: cyc-seattle/.github/.github/workflows/release.yml@v2.4.0
+    permissions:
+      contents: write
+      id-token: write
+      packages: write
+    with:
+      image: ghcr.io/cyc-seattle/workspace-fake
+      image-file: Dockerfile
