@@ -1,19 +1,15 @@
 import winston from "winston";
 import { backOff } from "exponential-backoff";
 
-// The default quota on Google Spreadsheet API is 60 requests/minute/user.
-// However, there's a separate read and write quota, so we can safely double
-// this to get a little bit more throughput.
+// The default pace: two requests a second, well under the Directory and Groups Settings quotas.
 const requestPerMinute = 60 * 2;
 const millisPerRequest = (60 * 1000) / requestPerMinute;
 
 /**
  * Extracts the HTTP status code from an error thrown by a Google API client.
  *
- * The two client libraries in use report the status differently:
- * - `google-spreadsheet` uses axios, which exposes it as `error.response.status`.
- * - `googleapis` uses gaxios, which additionally sets a numeric `error.code`
- *   (and `error.status` on newer versions).
+ * Clients report the status differently: axios exposes it as `error.response.status`, and
+ * `googleapis`' gaxios also sets a numeric `error.code` (and `error.status` on newer versions).
  *
  * Returns `undefined` when no HTTP status can be determined (e.g. a plain
  * programming error or a network failure without a response).

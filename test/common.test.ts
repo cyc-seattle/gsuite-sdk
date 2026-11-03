@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { getHttpStatus, isRetryableError, safeCall } from "../src/common.js";
 
-// Mimic the error shapes thrown by the two Google client libraries.
-// google-spreadsheet (axios): status lives on `error.response.status`.
+// Mimic the error shapes Google clients throw.
+// axios: status lives on `error.response.status`.
 function axiosError(status: number) {
   return { response: { status }, message: `Request failed with status ${status}` };
 }
