@@ -4,8 +4,8 @@ Guidance for coding agents working in this repository.
 
 ## Project overview
 
-`@cyc-seattle/gsuite-sdk` wraps the Google Workspace APIs that CYC's tools call: Calendar, Sheets,
-the Admin SDK Directory, and Groups Settings. `@cyc-seattle/gsuite-sdk/fake` is a Workspace fake
+`@cyc-seattle/gsuite-sdk` wraps the Google Workspace APIs that CYC's tools call: the Admin SDK
+Directory and Groups Settings. `@cyc-seattle/gsuite-sdk/fake` is a Workspace fake
 for the Directory and Groups Settings calls. The README documents both.
 
 ## Development environment

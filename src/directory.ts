@@ -53,8 +53,8 @@ export class DirectoryClient {
   constructor(auth: Auth.GoogleAuth, options: ClientOptions = {}) {
     this.pacing = options.pacing ?? {};
     // The `directory_v1` cast is needed because `google.admin` also has overloads for
-    // two other API versions, which the `auth` cast below (needed for its own reasons —
-    // see CalendarClient) leaves TypeScript unable to discriminate between.
+    // two other API versions, which the `auth` cast below leaves TypeScript unable to discriminate
+    // between.
     this.client = google.admin({
       version: "directory_v1",
       auth,

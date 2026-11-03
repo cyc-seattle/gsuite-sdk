@@ -1,6 +1,6 @@
 # @cyc-seattle/gsuite-sdk
 
-Typed wrappers around Google Workspace APIs: Calendar, Sheets, the Admin SDK Directory, and Group Settings.
+Typed wrappers around Google Workspace APIs: the Admin SDK Directory and Group Settings.
 
 ```sh
 pnpm add @cyc-seattle/gsuite-sdk
@@ -8,36 +8,11 @@ pnpm add @cyc-seattle/gsuite-sdk
 
 Every client takes a `GoogleAuth` instance from `googleapis`. It uses Application Default Credentials (ADC) unless you pass a key. Set `scopes` for the APIs you call.
 
-## Spreadsheets
-
-```ts
-import { SpreadsheetClient, type Row } from "@cyc-seattle/gsuite-sdk";
-import { google } from "googleapis";
-
-interface Camp extends Row {
-  name: string;
-  start: string;
-}
-
-const auth = new google.auth.GoogleAuth({ scopes: ["https://www.googleapis.com/auth/spreadsheets"] });
-const spreadsheet = await new SpreadsheetClient(auth).loadSpreadsheet("<spreadsheet URL or ID>");
-const worksheet = await spreadsheet.getOrCreateWorksheet<Camp>("Camps", ["name", "start"]);
-const table = await worksheet.getTable();
-```
-
-## Calendar
-
-```ts
-import { CalendarClient } from "@cyc-seattle/gsuite-sdk";
-
-const calendar = new CalendarClient(auth).loadCalendar("<calendar ID>");
-const events = await calendar.listEvents();
-```
-
 ## Directory and Group Settings
 
 ```ts
 import { DirectoryClient, GroupSettingsClient } from "@cyc-seattle/gsuite-sdk";
+import { google } from "googleapis";
 
 const auth = new google.auth.GoogleAuth({
   scopes: [
