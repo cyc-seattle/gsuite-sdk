@@ -2,6 +2,8 @@
 
 Guidance for coding agents working in this repository.
 
+Follow `cyc:conventions` (the rules shared by every cyc-seattle repo).
+
 ## Project overview
 
 `@cyc-seattle/gsuite-sdk` wraps the Google Workspace APIs that CYC's tools call: the Admin SDK
@@ -50,7 +52,7 @@ Keep a task's `run` to about two lines. Put anything longer in `scripts/`.
 - ESM. Import paths carry the `.js` extension.
 - Comments explain why, not what, in a line or two. Write one where a reader would otherwise get
   it wrong. Cite an issue instead of recounting it.
-- Docs record the outcome, not the path to it, and use no personal identifiers.
+- Docs record the outcome, not the path to it.
 
 ## Working in this repo
 
