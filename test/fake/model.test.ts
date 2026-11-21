@@ -149,6 +149,26 @@ describe("members", () => {
     ).toBe(400);
   });
 
+  it("deletes a member, found by email in any case or by ID", () => {
+    const ann = model.insertMember("sailors@example.org", { email: "ann@example.org" });
+    model.insertMember("sailors@example.org", { email: "bo@example.org" });
+
+    model.deleteMember("sailors@example.org", "ANN@example.org");
+    model.deleteMember("sailors@example.org", model.getMember("sailors@example.org", "bo@example.org").id);
+
+    expect(model.listMembers("sailors@example.org").members).toBeUndefined();
+    expect(errorOf(() => model.getMember("sailors@example.org", ann.id)).status).toBe(404);
+  });
+
+  it("answers 404 when deleting from an unknown group, or someone not in it", () => {
+    expect(errorOf(() => model.deleteMember("missing@example.org", "ann@example.org")).message).toBe(
+      "Resource Not Found: groupKey",
+    );
+    expect(errorOf(() => model.deleteMember("sailors@example.org", "ann@example.org")).message).toBe(
+      "Resource Not Found: memberKey",
+    );
+  });
+
   it("updates a member's role", () => {
     model.insertMember("sailors@example.org", { email: "ann@example.org" });
 

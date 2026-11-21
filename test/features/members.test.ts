@@ -11,4 +11,6 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
   Scenario("Adding a person to a group", () => {});
   Scenario("Adding a member again as a manager promotes them", () => {});
   Scenario("Adding a manager again as a member keeps them a manager", () => {});
+  Scenario("Taking a person out of a group", () => {});
+  Scenario("Taking out someone who isn't in the group", () => {});
 });

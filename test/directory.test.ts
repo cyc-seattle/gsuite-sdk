@@ -11,6 +11,7 @@ const {
   membersInsert,
   membersUpdate,
   membersGet,
+  membersDelete,
   settingsGet,
   settingsPatch,
 } = vi.hoisted(() => ({
@@ -23,6 +24,7 @@ const {
   membersInsert: vi.fn(),
   membersUpdate: vi.fn(),
   membersGet: vi.fn(),
+  membersDelete: vi.fn(),
   settingsGet: vi.fn(),
   settingsPatch: vi.fn(),
 }));
@@ -47,7 +49,13 @@ beforeEach(() => {
   vi.useFakeTimers();
   adminMock.mockReturnValue({
     groups: { get: groupsGet, insert: groupsInsert, list: groupsList },
-    members: { list: membersList, insert: membersInsert, update: membersUpdate, get: membersGet },
+    members: {
+      list: membersList,
+      insert: membersInsert,
+      update: membersUpdate,
+      get: membersGet,
+      delete: membersDelete,
+    },
   });
   groupssettingsMock.mockReturnValue({
     groups: { get: settingsGet, patch: settingsPatch },
@@ -296,6 +304,50 @@ describe("DirectoryClient.addMember", () => {
     expect(membersInsert).toHaveBeenCalledWith({
       groupKey: "staff@cyccommunitysailing.org",
       requestBody: { email: "coaches@cyccommunitysailing.org", role: "MEMBER" },
+    });
+  });
+});
+
+describe("DirectoryClient.removeMember", () => {
+  it("takes a member out of a group", async () => {
+    membersDelete.mockResolvedValue({ data: "" });
+    const client = new DirectoryClient(fakeAuth);
+
+    const result = await run(client.removeMember("board@cyccommunitysailing.org", "left@example.com"));
+
+    expect(result).toBe("removed");
+    expect(membersDelete).toHaveBeenCalledWith({
+      groupKey: "board@cyccommunitysailing.org",
+      memberKey: "left@example.com",
+    });
+  });
+
+  it("reports someone who isn't in the group as 'not-member' instead of throwing", async () => {
+    membersDelete.mockRejectedValue(gaxiosError(404));
+    groupsGet.mockResolvedValue({ data: { id: "g1", email: "board@cyccommunitysailing.org" } });
+    const client = new DirectoryClient(fakeAuth);
+
+    const result = await run(client.removeMember("board@cyccommunitysailing.org", "never@example.com"));
+
+    expect(result).toBe("not-member");
+  });
+
+  it("throws the 404 when the group itself doesn't exist", async () => {
+    membersDelete.mockRejectedValue(gaxiosError(404));
+    groupsGet.mockRejectedValue(gaxiosError(404));
+    const client = new DirectoryClient(fakeAuth);
+
+    await expect(run(client.removeMember("gone@cyccommunitysailing.org", "ann@example.com"))).rejects.toMatchObject({
+      code: 404,
+    });
+  });
+
+  it("rethrows any other failure", async () => {
+    membersDelete.mockRejectedValue(gaxiosError(403));
+    const client = new DirectoryClient(fakeAuth);
+
+    await expect(run(client.removeMember("board@cyccommunitysailing.org", "ann@example.com"))).rejects.toMatchObject({
+      code: 403,
     });
   });
 });
