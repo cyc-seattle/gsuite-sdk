@@ -76,6 +76,14 @@ describe("Directory API", () => {
     expect((await call("GET", path)).body).toMatchObject({ members: [{ email: "ann@example.org" }] });
   });
 
+  it("deletes a member with an empty 204, and answers 404 for someone not there", async () => {
+    const path = "/admin/directory/v1/groups/sailors%40example.org/members";
+    await call("POST", path, { email: "ann@example.org" });
+
+    expect(await call("DELETE", `${path}/ann%40example.org`)).toMatchObject({ status: 204, body: "" });
+    expect((await call("DELETE", `${path}/ann%40example.org`)).status).toBe(404);
+  });
+
   it("sends the model's errors with Google's status and body", async () => {
     const response = await call("GET", "/admin/directory/v1/groups/missing%40example.org");
 

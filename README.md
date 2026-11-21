@@ -24,6 +24,8 @@ const members = await new DirectoryClient(auth).listMembers("team@example.org");
 const settings = await new GroupSettingsClient(auth).getSettings("team@example.org");
 ```
 
+`addMember` and `removeMember` are idempotent: adding someone already in a group answers `"already-member"`, raising their role if it's lower, and taking out someone who isn't there answers `"not-member"`. Taking someone out of a group that doesn't exist throws.
+
 ### Client options
 
 `DirectoryClient` and `GroupSettingsClient` take an optional second argument:

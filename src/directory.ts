@@ -34,11 +34,13 @@ export interface GroupMember {
 }
 
 /**
- * Result of adding a member to a group. The sync that drives this client is
- * add-only and idempotent, so a member who's already there is an expected
- * outcome, not a failure — Google reports it as an HTTP 409.
+ * Result of adding a member to a group. Adding is idempotent, so a member who's
+ * already there is an expected outcome, not a failure — Google reports it as an HTTP 409.
  */
 export type AddMemberResult = "added" | "already-member";
+
+/** Result of taking a member out of a group. Someone who isn't there (HTTP 404) is already out. */
+export type RemoveMemberResult = "removed" | "not-member";
 
 /**
  * Admin SDK Directory API client for groups and their members.
@@ -188,6 +190,28 @@ export class DirectoryClient {
         winston.debug("Member already in group", { groupKey, email });
         await this.promoteIfBelow(groupKey, email, role);
         return "already-member";
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Takes a member out of a group. Returns "not-member" instead of throwing when they aren't in it
+   * (HTTP 404), since the caller wants them out either way. A missing group throws.
+   */
+  async removeMember(groupKey: string, email: string): Promise<RemoveMemberResult> {
+    winston.debug("Removing group member", { groupKey, email });
+
+    try {
+      await safeCall<void>(async () => {
+        await this.client.members.delete({ groupKey, memberKey: email });
+      }, this.pacing);
+      winston.info("Removed group member", { groupKey, email });
+      return "removed";
+    } catch (error) {
+      if (getHttpStatus(error) === 404 && (await this.getGroup(groupKey)) !== null) {
+        winston.debug("Member not in group", { groupKey, email });
+        return "not-member";
       }
       throw error;
     }

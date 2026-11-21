@@ -62,6 +62,11 @@ const ROUTES: Route[] = [
     handle: (model, [groupKey, memberKey], _, body) => model.updateMember(groupKey!, memberKey!, asObject(body)),
   },
   {
+    method: "DELETE",
+    path: new RegExp(`^/admin/directory/v1/groups/${SEGMENT}/members/${SEGMENT}$`),
+    handle: (model, [groupKey, memberKey]) => model.deleteMember(groupKey!, memberKey!),
+  },
+  {
     method: "GET",
     path: new RegExp(`^/groups/v1/groups/${SEGMENT}$`),
     handle: (model, [groupUniqueId]) => model.getSettings(groupUniqueId!),
@@ -150,7 +155,10 @@ async function handle(model: WorkspaceModel, request: IncomingMessage, response:
   }
   try {
     const result = route.handle(model, match, url, body);
-    if (url.pathname.startsWith("/groups/v1/") && url.searchParams.get("alt") !== "json") {
+    if (result === undefined) {
+      // A delete answers with no body, as Google's does.
+      response.writeHead(204).end();
+    } else if (url.pathname.startsWith("/groups/v1/") && url.searchParams.get("alt") !== "json") {
       sendAtom(response, result as GroupSettings);
     } else {
       send(response, 200, result);

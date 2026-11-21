@@ -269,6 +269,14 @@ export class WorkspaceModel {
     return this.toMember(member);
   }
 
+  deleteMember(groupKey: string, memberKey: string): void {
+    const group = this.requireGroup(groupKey);
+    const member = this.requireMember(group, memberKey);
+    for (const [key, stored] of group.members) {
+      if (stored === member) group.members.delete(key);
+    }
+  }
+
   getSettings(groupUniqueId: string): GroupSettings {
     return this.toSettings(this.requireSettingsGroup(groupUniqueId));
   }

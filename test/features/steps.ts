@@ -34,6 +34,25 @@ defineSteps(({ Step }) => {
     expect(world().error).toBeUndefined();
   });
 
+  Step("{string} is taken out of {string}", async (_, member: string, group: string) => {
+    const w = world();
+    try {
+      await w.directory.removeMember(w.emailOf(group), w.emailOf(member));
+    } catch (error) {
+      w.error = error;
+    }
+  });
+
+  Step("taking out succeeds", () => {
+    expect(world().error).toBeUndefined();
+  });
+
+  Step("{string} doesn't list {string}", async (_, group: string, member: string) => {
+    const w = world();
+    const members = await w.directory.listMembers(w.emailOf(group));
+    expect(members.map((m) => m.email)).not.toContain(w.emailOf(member));
+  });
+
   Step("{string} lists {string} as a {word}", async (_, group: string, member: string, word: string) => {
     const w = world();
     const members = await w.directory.listMembers(w.emailOf(group));
