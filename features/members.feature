@@ -1,4 +1,4 @@
-Feature: People are added to groups at the role they need, and taken out
+Feature: People are added to groups at the role they need, looked up, and taken out
 
   Adding someone who is already in a group raises their role if it's lower, and never lowers it.
   Taking out someone who isn't in a group succeeds, since they're out either way.
@@ -35,3 +35,14 @@ Feature: People are added to groups at the role they need, and taken out
     When "Ann" is taken out of "Sailors"
     Then taking out succeeds
     And "Sailors" doesn't list "Ann"
+
+  Scenario: Looking up a person in a group
+    Given a group "Sailors"
+    And "Ann" is already in "Sailors" as a manager
+    When "Ann" is looked up in "Sailors"
+    Then the lookup finds "Ann" as a manager
+
+  Scenario: Looking up someone who isn't in the group
+    Given a group "Sailors"
+    When "Ann" is looked up in "Sailors"
+    Then the lookup finds no one

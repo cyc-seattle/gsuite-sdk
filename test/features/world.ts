@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { Auth } from "googleapis";
-import { DirectoryClient, GroupSettingsClient } from "../../src/index.js";
+import { DirectoryClient, GroupSettingsClient, type GroupMember } from "../../src/index.js";
 import { ManualClock, WorkspaceModel, startFakeServer, type RunningFakeServer } from "../../src/fake/index.js";
 
 /** No wait between requests, and an immediate retry, so a scenario takes milliseconds. */
@@ -37,6 +37,8 @@ export class World {
   /** Names from the last list, or the error from the last add. */
   listed: string[] = [];
   error: unknown;
+  /** What the last lookup found. */
+  found: GroupMember | null | undefined;
   private server!: RunningFakeServer;
 
   async start(): Promise<void> {

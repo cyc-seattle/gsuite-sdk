@@ -24,7 +24,7 @@ const members = await new DirectoryClient(auth).listMembers("team@example.org");
 const settings = await new GroupSettingsClient(auth).getSettings("team@example.org");
 ```
 
-`addMember` and `removeMember` are idempotent: adding someone already in a group answers `"already-member"`, raising their role if it's lower, and taking out someone who isn't there answers `"not-member"`. Taking someone out of a group that doesn't exist throws.
+`addMember` and `removeMember` are idempotent: adding someone already in a group answers `"already-member"`, raising their role if it's lower, and taking out someone who isn't there answers `"not-member"`. Taking someone out of a group that doesn't exist throws. `getMember` finds a member by any of their addresses, since Google resolves an alias, and answers with their primary address, or `null` if they aren't in the group.
 
 ### Client options
 
