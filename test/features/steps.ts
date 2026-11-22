@@ -43,6 +43,20 @@ defineSteps(({ Step }) => {
     }
   });
 
+  Step("{string} is looked up in {string}", async (_, member: string, group: string) => {
+    const w = world();
+    w.found = await w.directory.getMember(w.emailOf(group), w.emailOf(member));
+  });
+
+  Step("the lookup finds {string} as a {word}", (_, member: string, word: string) => {
+    const w = world();
+    expect(w.found).toMatchObject({ email: w.emailOf(member), role: role(word) });
+  });
+
+  Step("the lookup finds no one", () => {
+    expect(world().found).toBeNull();
+  });
+
   Step("taking out succeeds", () => {
     expect(world().error).toBeUndefined();
   });

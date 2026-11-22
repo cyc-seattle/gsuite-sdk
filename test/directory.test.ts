@@ -308,6 +308,39 @@ describe("DirectoryClient.addMember", () => {
   });
 });
 
+describe("DirectoryClient.getMember", () => {
+  it("returns the member at their primary address, given an alias", async () => {
+    membersGet.mockResolvedValue({ data: { email: "jane@cyccommunitysailing.org", role: "MEMBER", type: "USER" } });
+    const client = new DirectoryClient(fakeAuth);
+
+    const member = await run(client.getMember("board@cyccommunitysailing.org", "jane.doe@cyccommunitysailing.org"));
+
+    expect(member).toEqual({ email: "jane@cyccommunitysailing.org", role: "MEMBER", type: "USER" });
+    expect(membersGet).toHaveBeenCalledWith({
+      groupKey: "board@cyccommunitysailing.org",
+      memberKey: "jane.doe@cyccommunitysailing.org",
+    });
+  });
+
+  it("returns null for someone not in the group", async () => {
+    membersGet.mockRejectedValue(gaxiosError(404));
+    groupsGet.mockResolvedValue({ data: { id: "g1", email: "board@cyccommunitysailing.org" } });
+    const client = new DirectoryClient(fakeAuth);
+
+    expect(await run(client.getMember("board@cyccommunitysailing.org", "never@example.com"))).toBeNull();
+  });
+
+  it("throws the 404 when the group itself doesn't exist", async () => {
+    membersGet.mockRejectedValue(gaxiosError(404));
+    groupsGet.mockRejectedValue(gaxiosError(404));
+    const client = new DirectoryClient(fakeAuth);
+
+    await expect(run(client.getMember("gone@cyccommunitysailing.org", "ann@example.com"))).rejects.toMatchObject({
+      code: 404,
+    });
+  });
+});
+
 describe("DirectoryClient.removeMember", () => {
   it("takes a member out of a group", async () => {
     membersDelete.mockResolvedValue({ data: "" });

@@ -13,4 +13,6 @@ describeFeature(feature, ({ Scenario, BeforeEachScenario, AfterEachScenario }) =
   Scenario("Adding a manager again as a member keeps them a manager", () => {});
   Scenario("Taking a person out of a group", () => {});
   Scenario("Taking out someone who isn't in the group", () => {});
+  Scenario("Looking up a person in a group", () => {});
+  Scenario("Looking up someone who isn't in the group", () => {});
 });

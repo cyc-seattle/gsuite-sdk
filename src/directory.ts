@@ -168,6 +168,28 @@ export class DirectoryClient {
   }
 
   /**
+   * Gets one member of a group by any of their addresses. Google resolves an alias to the member,
+   * and answers with their primary address. Returns null when they aren't in the group. A missing
+   * group throws.
+   */
+  async getMember(groupKey: string, memberKey: string): Promise<GroupMember | null> {
+    winston.debug("Getting group member", { groupKey, memberKey });
+
+    try {
+      const member = await safeCall<admin_directory_v1.Schema$Member>(async () => {
+        const response = await this.client.members.get({ groupKey, memberKey });
+        return response.data;
+      }, this.pacing);
+      return convertToGroupMember(member);
+    } catch (error) {
+      if (getHttpStatus(error) === 404 && (await this.getGroup(groupKey)) !== null) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Adds a member to a group with the given role. Returns "already-member"
    * instead of throwing when the member is already in the group (HTTP 409),
    * since the sync that calls this treats that as success - but first promotes
